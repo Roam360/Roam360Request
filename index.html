@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Roam360 — Request a Town Video</title>
+  <style>
+    :root{--accent:#1da1f2;--bg:#0f1720;--card:#0b1220;--muted:#9aa4b2}
+    *{box-sizing:border-box}
+    body{font-family:Inter,ui-sans-serif,system-ui,Arial,Helvetica;color:#e6eef6;background:linear-gradient(180deg,#071023 0%, #0b1220 100%);margin:0;padding:28px;}
+    .container{max-width:820px;margin:28px auto;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:12px;padding:26px;border:1px solid rgba(255,255,255,0.03)}
+    h1{margin:0 0 8px;font-size:22px}
+    p.lead{margin:0 0 18px;color:var(--muted)}
+    label{display:block;font-weight:600;margin:12px 0 6px}
+    input[type=text],select,textarea{width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);color:#eaf4ff}
+    .row{display:flex;gap:12px}
+    .col{flex:1}
+    .price-box{display:flex;justify-content:space-between;align-items:center;padding:12px;border-radius:10px;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005));border:1px solid rgba(255,255,255,0.02);margin-top:10px}
+    .btn{display:inline-block;padding:12px 16px;border-radius:10px;border:0;cursor:pointer;font-weight:700}
+    .btn-pay{background:var(--accent);color:#042032}
+    .btn-mail{background:transparent;color:var(--accent);border:1px solid rgba(255,255,255,0.04)}
+    .small{font-size:13px;color:var(--muted)}
+    footer{margin-top:14px;color:var(--muted);font-size:13px}
+    .notice{background:rgba(29,161,242,0.06);padding:10px;border-radius:8px;border:1px solid rgba(29,161,242,0.06);color:var(--muted);margin-top:12px}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Request a town video for TikTok — Roam360</h1>
+    <p class="lead">Enter the town name and select delivery speed. After payment, I'll make a video and post it to <strong>@roam360</strong>. Use PayPal (preferred) or request another payment method.</p>
+
+    <form id="requestForm">
+      <label for="town">Town name (required)</label>
+      <input id="town" name="town" type="text" placeholder="e.g. Pasadena, CA" required />
+
+      <label for="notes">Optional notes (locations to include / angle)</label>
+      <textarea id="notes" name="notes" rows="3" placeholder="E.g. focus on downtown, nightlife, or creepy true crime story"></textarea>
+
+      <label>Delivery speed</label>
+      <div class="row">
+        <div class="col price-box">
+          <div>
+            <div style="font-weight:700">Soon (standard)</div>
+            <div class="small">I will schedule this — typical turnaround</div>
+          </div>
+          <div style="font-size:18px;font-weight:800">$10</div>
+          <input type="radio" name="speed" value="10" checked style="margin-left:12px" />
+        </div>
+        <div class="col price-box">
+          <div>
+            <div style="font-weight:700">Priority — within 48 hours</div>
+            <div class="small">Rush delivery (faster)</div>
+          </div>
+          <div style="font-size:18px;font-weight:800">$15</div>
+          <input type="radio" name="speed" value="15" style="margin-left:12px" />
+        </div>
+      </div>
+
+      <label for="handle">TikTok handle (where I will post)</label>
+      <input id="handle" name="handle" type="text" value="@roam360" required />
+
+      <div style="margin-top:12px">
+        <label>Payment</label>
+        <div class="notice">PayPal (fast): you will be redirected to PayPal. Please include the <strong>town name</strong> and <strong>handle</strong> in the payment note so I can match your request.</div>
+      </div>
+
+      <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
+        <button type="button" id="payBtn" class="btn btn-pay">Pay with PayPal</button>
+        <button type="button" id="invoiceBtn" class="btn btn-mail">Request Card Payment / Invoice</button>
+      </div>
+
+      <p class="small" style="margin-top:10px">PayPal email: <strong>mj0555099@gmail.com</strong></p>
+      <p class="small">After payment send a screenshot to the same email or DM on TikTok if you want confirmation. Make sure the town name is in the PayPal "note" field or the transaction memo.</p>
+
+      <div id="status" class="small" style="margin-top:10px;color:#bfe6ff"></div>
+    </form>
+
+    <footer>
+      By requesting you agree to the service: one 15–60 second TikTok video created and posted to the handle you provided. No refunds once work begins — contact via email for questions.
+    </footer>
+  </div>
+
+  <script>
+    const payBtn = document.getElementById('payBtn');
+    const invoiceBtn = document.getElementById('invoiceBtn');
+    const status = document.getElementById('status');
+
+    function urlEncode(obj){
+      return Object.keys(obj).map(k=>encodeURIComponent(k)+"="+encodeURIComponent(obj[k])).join('&');
+    }
+
+    payBtn.addEventListener('click', ()=>{
+      const town = document.getElementById('town').value.trim();
+      const notes = document.getElementById('notes').value.trim();
+      const handle = document.getElementById('handle').value.trim() || '@roam360';
+      const speed = document.querySelector('input[name="speed"]:checked').value;
+      if(!town){ status.textContent = 'Please enter a town name.'; return; }
+      const business = 'mj0555099@gmail.com';
+      const amount = parseFloat(speed).toFixed(2);
+      const item_name = `Roam360 video for ${town} (${handle})`;
+      const custom = notes || '';
+
+      // Build PayPal payment URL (Buy Now / Checkout)
+      const params = {
+        cmd: '_xclick',
+        business: business,
+        item_name: item_name,
+        amount: amount,
+        currency_code: 'USD',
+        no_shipping: 1,
+        return: window.location.href + '?status=success',
+        cancel_return: window.location.href + '?status=cancel'
+      };
+      const paypalUrl = 'https://www.paypal.com/cgi-bin/webscr?' + urlEncode(params);
+
+      // Open PayPal in new tab
+      window.open(paypalUrl, '_blank');
+      status.textContent = 'Opening PayPal... make sure to include the town name in the payment note.';
+    });
+
+    invoiceBtn.addEventListener('click', ()=>{
+      const town = document.getElementById('town').value.trim();
+      const handle = document.getElementById('handle').value.trim() || '@roam360';
+      const speed = document.querySelector('input[name="speed"]:checked').value;
+      const amount = parseFloat(speed).toFixed(2);
+      const subject = `Roam360 payment request: ${town} (${handle})`;
+      const body = `Hi,%0D%0A%0D%0AI'd like to pay $${amount} for a Roam360 town video.%0D%0ATown: ${encodeURIComponent(town)}%0D%0AHandle: ${encodeURIComponent(handle)}%0D%0A%0D%0ANotes:%0D%0A(please paste any notes here)%0D%0A%0D%0AThanks!`;
+      window.location.href = `mailto:mj0555099@gmail.com?subject=${encodeURIComponent(subject)}&body=${body}`;
+    });
+  </script>
+</body>
+</html>
